@@ -96,10 +96,12 @@ CODE:
 
     sv_bless(sv_msgpack, gv_stashpv(klass, 1));
 
-    up = (my_unpacker_t*)malloc(sizeof(my_unpacker_t));
-    assert(up);
+    Newx(up, 1, my_unpacker_t);
 
     up->unpacker = msgpack_unpacker_new(MSGPACK_UNPACKER_INIT_BUFFER_SIZE);
+    if (NULL == up->unpacker) {
+        croak("cannot allocate msgpack unpacker");
+    }
     msgpack_unpacked_init(&up->result);
 
     sv_magic((SV*)hv, NULL, PERL_MAGIC_ext, NULL, 0);
@@ -115,7 +117,7 @@ CODE:
 {
     msgpack_unpacker_free(up->unpacker);
     msgpack_unpacked_destroy(&up->result);
-    free(up);
+    Safefree(up);
 }
 
 void
